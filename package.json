@@ -1,0 +1,23 @@
+{
+  "name": "vibe-skills",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agent Coding skills and project task preview CLI",
+  "type": "module",
+  "bin": {
+    "vibe-skills": "bin/vibe-skills.mjs",
+    "task-preview": "bin/task-preview.mjs"
+  },
+  "files": [
+    "bin/",
+    "skills/",
+    "!skills/**/__pycache__/**",
+    "!skills/**/*.pyc"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/cli.test.mjs skills/ui-delivery/test/preview.test.mjs skills/task-integrator/bin/preview.test.mjs skills/task-integrator/bin/tasks.test.mjs && python3 -m unittest skills/coding-owner/scripts/test_worktree_kit.py"
+  }
+}

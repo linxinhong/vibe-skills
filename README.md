@@ -43,6 +43,26 @@ rsync -a skills/ ~/.agents/skills/
 手工同步前检查目标目录中的本地修改。`rsync` 命令会用本仓库同名文件覆盖目标技能文件，
 但不会删除目标目录中的额外文件。
 
+## 任务进度预览
+
+无需安装或发布 npm 包，可以直接从 GitHub 运行最新版本：
+
+```sh
+npx --yes github:linxinhong/vibe-skills task-preview --root . --live --open
+```
+
+已经通过 `npx skills add` 安装技能时，也可以继续使用本地零依赖入口：
+
+```sh
+node ~/.agents/skills/task-integrator/bin/preview.mjs --root . --live --open
+```
+
+如需显式选择 GitHub 包内的独立二进制入口：
+
+```sh
+npx --yes --package=github:linxinhong/vibe-skills task-preview --root . --live --open
+```
+
 ## 校验
 
 逐个执行 Codex Skill Creator 的结构校验，并运行套件自带测试：
@@ -52,7 +72,7 @@ for skill in architect ui-delivery coding-owner business-verifier task-integrato
   python3 ~/.agents/skills-out/anthropics/skills/skill-creator/scripts/quick_validate.py "skills/$skill"
 done
 
-node --test skills/ui-delivery/test/preview.test.mjs
+node --test test/cli.test.mjs skills/ui-delivery/test/preview.test.mjs
 node --test skills/task-integrator/bin/preview.test.mjs skills/task-integrator/bin/tasks.test.mjs
 python3 -m unittest skills/coding-owner/scripts/test_worktree_kit.py
 ```
