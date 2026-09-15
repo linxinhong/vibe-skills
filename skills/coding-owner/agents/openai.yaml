@@ -1,0 +1,4 @@
+interface:
+  display_name: "Coding Owner"
+  short_description: "Execute owned task cards with verified completion"
+  default_prompt: "Use $coding-owner to execute the requested task card, verify its acceptance, and complete integration within the authorized scope."

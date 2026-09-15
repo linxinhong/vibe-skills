@@ -1,0 +1,11 @@
+{
+  "project": { "name": "Example · 客户门户" },
+  "tasks": [
+    { "id": "PORTAL/auth", "title": "登录与退出", "status": "done", "kind": "development", "owner": "Agent A", "dependencies": [], "completedAt": "2026-09-01T08:00:00Z", "evidence": [{ "status": "pass", "check": "示例证据", "summary": "仅为预览演示数据" }] },
+    { "id": "验证-一", "title": "登录旅程阶段验收", "status": "in_progress", "kind": "verification", "owner": "Agent B", "dependencies": ["PORTAL/auth"], "acceptance": [{ "expect": "退出后无法访问受保护页面" }] },
+    { "id": "Release 1", "title": "首期业务验收", "status": "pending", "kind": "acceptance", "dependencies": ["验证-一"] }
+  ],
+  "milestones": [
+    { "id": "portal-v1", "title": "门户首期", "tasks": ["PORTAL/auth"], "verificationTasks": ["验证-一", "Release 1"], "group": "客户门户", "plannedDate": "" }
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Task Integrator"
+  short_description: "Audit task completion, merge main, and unlock dependencies"
+  default_prompt: "Use $task-integrator to audit task progress and claimable work, and carry out reconciliation or integration when authorized."

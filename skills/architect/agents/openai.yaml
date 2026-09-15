@@ -1,0 +1,4 @@
+interface:
+  display_name: "Architect"
+  short_description: "Define architecture boundary and executable task cards"
+  default_prompt: "Use $architect to turn this request into an architecture boundary and a small set of executable task cards before implementation."

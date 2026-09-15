@@ -1,0 +1,4 @@
+interface:
+  display_name: "UI Delivery"
+  short_description: "Preview business UI decisions and verify complete user journeys"
+  default_prompt: "Use $ui-delivery to improve one business flow, show the proposed interaction before substantial implementation, and verify the result."

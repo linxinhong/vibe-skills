@@ -1,0 +1,30 @@
+# Copy to <project-root>/.tasks/ui.yaml when setting up a project.
+# Paths below are repository-relative. Null/[] mean not yet configured.
+schema_version: 1
+project:
+  name: null
+sources:
+  project_index: .tasks/README.md
+  project_map: null
+  page_map: null
+  design_system: null
+  business_specs: []
+  task_registry: null
+visual:
+  density: compact
+  navigation: sidebar
+  reference_pages: []
+  approved_patterns: []
+review:
+  mode: significant
+  visual_preview: gpt_image
+  image_reference: current_page_region
+  capture_tool: agent-browser
+  viewport:
+    width: 1440
+    height: 900
+  screenshot_scope: viewport
+verification:
+  browser: available
+  commands_source: null
+  evidence_directory: .tasks/ui
