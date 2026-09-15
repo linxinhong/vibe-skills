@@ -5,7 +5,7 @@ description: >
   Use for design decisions and task decomposition; small implementation requests do not
   automatically require a planning phase or new documents.
 metadata:
-  version: "4.3"
+  version: "4.4"
   role: architect
 ---
 
@@ -112,6 +112,8 @@ For a new registry using the bundled tasks CLI, retain this compatible shape:
 
 ```yaml
 version: 1
+project:
+  name: "Project name"
 feature:
   title: "Feature name"
   status: in_progress
@@ -142,6 +144,12 @@ tasks:
       evidence: []
       follow_up_candidates: []
 ```
+
+`project.name` is the stable project identity used by project-wide previews and reports.
+`feature.title` names the current delivery theme and must not substitute for the project name.
+When initializing a registry, derive the project name from explicit project context or the
+repository's established product name; if neither exists, use the repository directory name
+rather than inventing a product brand.
 
 Replace example values with task-specific content. Use command acceptance entries with type:
 command and run: "<actual repository command>" when applicable. Do not invent test infrastructure

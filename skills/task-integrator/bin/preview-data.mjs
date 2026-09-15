@@ -65,6 +65,8 @@ export function gitInfo(root, baseOverride) {
   const configured = git(root,['config','--get','init.defaultBranch']);
   const base = baseOverride || remoteDefault || (refs.includes(configured) ? configured : refs.includes('main') ? 'main' : refs.includes('master') ? 'master' : null);
   const baseSha = base ? git(root,['rev-parse','--verify','--end-of-options',base+'^{commit}']) : null;
+  const head = git(root,['rev-parse','--verify','HEAD^{commit}']);
+  const commitCount = head ? Number(git(root,['rev-list','--count',head]) || 0) : 0;
   if (baseOverride && !baseSha) throw new Error('无法解析 --base：' + baseOverride);
   const raw = git(root,['worktree','list','--porcelain','-z']) || '';
   const worktrees = [];
@@ -78,7 +80,7 @@ export function gitInfo(root, baseOverride) {
     w.id=key(w.path); w.exists=existsSync(w.path);
     w.dirty = w.exists ? (git(w.path,['status','--porcelain','-uno']) || '').split('\n').filter(Boolean) : [];
   }
-  return {available:true,root:top,base:baseSha ? base : null,baseSha,worktrees,branches:refs};
+  return {available:true,root:top,base:baseSha ? base : null,baseSha,commitCount,worktrees,branches:refs};
 }
 export function associate(tasks, info, root) {
   const canonical=p=>existsSync(p)?realpathSync(p):resolve(p);

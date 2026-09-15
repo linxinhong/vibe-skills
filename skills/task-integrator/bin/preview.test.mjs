@@ -31,9 +31,9 @@ test('milestones require release evidence and known tasks',()=>{
   assert.equal(s.milestones[0].release,null);assert.equal(s.milestones[0].completed,true);assert.equal(s.milestones[1].completed,false);
 });
 test('YAML adapter reads a task ledger without Git',t=>{
-  const root=fixture(t);mkdirSync(join(root,'.tasks'));writeFileSync(join(root,'.tasks/tasks.yaml'),'version: 1\nfeature:\n  title: Example\n  status: in_progress\ntasks:\n  - id: CARD-1\n    title: Example task\n    status: ready\n    dependencies: []\n');
+  const root=fixture(t);mkdirSync(join(root,'.tasks'));writeFileSync(join(root,'.tasks/tasks.yaml'),'version: 1\nproject:\n  name: Acme Platform\nfeature:\n  title: Example\n  status: in_progress\ntasks:\n  - id: CARD-1\n    title: Example task\n    status: ready\n    dependencies: []\n');
   writeFileSync(join(root,'.tasks/architecture.md'),'# Architecture\n\n<script>throw Error("unsafe")</script>\n\n| A | B |\n|---|---|\n| 1 | 2 |\n');
-  const state=loadState({root});assert.equal(state.tasks[0].id,'CARD-1');assert.equal(state.project,'Example');assert.equal(state.projectStatus,'in_progress');assert.match(state.architecture.markdown,/Architecture/);
+  const state=loadState({root});assert.equal(state.tasks[0].id,'CARD-1');assert.equal(state.project,'Acme Platform');assert.equal(state.projectStatus,'in_progress');assert.match(state.architecture.markdown,/Architecture/);
   const html=renderPage(state);assert.match(html,/data-view="architecture"/);assert.ok(!html.includes('<script>throw Error("unsafe")<\/script>'));
   writeFileSync(join(root,'tasks.yaml'),'tasks: []');assert.throws(()=>loadState({root}),/指定/);
 });
@@ -45,6 +45,7 @@ test('custom base, worktrees, history pagination and controlled local open',asyn
   writeFileSync(join(root,'input.json'),JSON.stringify({project:'Git example',tasks:[{id:'ABC-1',title:'Feature',status:'in_progress'}]}));
   const state=loadState({root,data:'input.json'}),task=state.tasks[0];
   assert.equal(state.git.base,'trunk');assert.equal(task.association,'inferred');assert.equal(task.status,'in_progress');assert.equal(task.comparison.ahead,32);
+  assert.equal(state.git.commitCount,1);
   assert.equal(history(root,task.head,state.git.baseSha).commits.length,30);assert.equal(history(root,task.head,state.git.baseSha,30).commits.length,3);
   assert.throws(()=>commitFiles(root,task.head,'--all'));assert.throws(()=>loadState({root,data:'input.json',base:'missing'}));
   let opened=null;const server=createPreviewServer({root,data:'input.json'},{opener:async p=>{opened=p;}});
@@ -58,4 +59,15 @@ test('custom base, worktrees, history pagination and controlled local open',asyn
   assert.equal((await fetch(origin+'/api/commit?task=ABC-1&hash=--all')).status,400);
   const wt2=join(root,'wt2');g(root,'worktree','add','-b','other/ABC-1',wt2);
   const ambiguous=loadState({root,data:'input.json'}).tasks[0];assert.equal(ambiguous.candidates.length,2);assert.equal(ambiguous.head,null);
+});
+test('preview includes preferred board order, commit total and graph-wide keyboard controls',()=>{
+  const html=renderPage({key:'x',project:'Example',tasks:[],git:{commitCount:42},recent:{commits:[]},warnings:[]});
+  assert.match(html,/const preferred=\['in_progress','ready','pending','done'\]/);
+  assert.match(html,/总提交数：/);
+  assert.match(html,/class="graph-port" data-scroll="graph" tabindex="0"/);
+  assert.match(html,/id="expand-all">全部展开/);
+  assert.match(html,/\$\('expand-all'\)\.onclick=\(\)=>\{graphShowOtherRoots=true/);
+  assert.match(html,/port\.onkeydown=navigate/);
+  assert.match(html,/只看当前主干/);
+  assert.match(html,/class="mind-root">'\+esc\(state\.project\)/);
 });

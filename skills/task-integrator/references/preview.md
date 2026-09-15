@@ -15,9 +15,9 @@ node ~/.agents/skills/task-integrator/bin/preview.mjs --root /path/to/project --
 `--roadmap` 指定里程碑 JSON，默认读取存在的 `.tasks/roadmap.json`。
 `--architecture` 指定 Markdown 架构文档，默认读取存在的 `.tasks/architecture.md`。
 
-页面标题采用 `项目进度预览（项目名称）`。现有 YAML 的 `feature.title` 是预览对象名称；
-`feature.status` 作为输入语义保留，但标题区不重复展示总体状态。通用 JSON 可使用
-`project.name` 与 `project.status` 表达同样语义。
+页面标题和依赖图根节点采用 `project.name`。YAML 与 JSON 都建议显式提供
+`project.name` 与可选的 `project.status`；`feature.title`、`feature.status` 表达当前交付主题，
+仅作为旧账本缺少 `project.name` 时的兼容回退，不应替代项目身份。
 
 ## JSON 输入
 
