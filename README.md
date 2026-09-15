@@ -16,13 +16,32 @@
 
 ## 安装
 
-将 `skills/` 下的五个目录同步到 Agent 技能目录：
+使用开放 Agent Skills CLI 从 GitHub 安装，并在交互界面选择需要的技能和目标 Agent：
+
+```sh
+npx skills add linxinhong/vibe-skills
+```
+
+查看仓库内可安装的技能而不执行安装：
+
+```sh
+npx skills add linxinhong/vibe-skills --list
+```
+
+为 Codex 全局安装全部五个技能：
+
+```sh
+npx skills add linxinhong/vibe-skills --skill '*' --agent codex --global --yes
+```
+
+仓库维护者也可以从本地工作区同步：
 
 ```sh
 rsync -a skills/ ~/.agents/skills/
 ```
 
-安装前检查目标目录中的本地修改。此命令会用本仓库同名文件覆盖目标技能文件，但不会删除目标目录中的额外文件。
+手工同步前检查目标目录中的本地修改。`rsync` 命令会用本仓库同名文件覆盖目标技能文件，
+但不会删除目标目录中的额外文件。
 
 ## 校验
 
