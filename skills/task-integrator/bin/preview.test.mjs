@@ -63,6 +63,8 @@ test('custom base, worktrees, history pagination and controlled local open',asyn
 test('preview includes preferred board order, commit total and graph-wide keyboard controls',()=>{
   const html=renderPage({key:'x',project:'Example',tasks:[],git:{commitCount:42},recent:{commits:[]},warnings:[]});
   assert.match(html,/const preferred=\['in_progress','ready','pending','done'\]/);
+  assert.match(html,/preferred\.includes\(s\)\|\|rows\.some/);
+  assert.match(html,/class="lane-empty">当前没有任务/);
   assert.match(html,/总提交数：/);
   assert.match(html,/class="graph-port" data-scroll="graph" tabindex="0"/);
   assert.match(html,/id="expand-all">全部展开/);
