@@ -5,7 +5,7 @@ description: >
   verification, and evidence-backed completion. Use for task-card execution or an authorized
   queue; ordinary edits without a task registry do not require this workflow.
 metadata:
-  version: "4.6"
+  version: "4.7"
   role: coding-owner
 ---
 
@@ -20,14 +20,28 @@ verified branch, a PR, or integrated main. A skill invocation does not authorize
 Start with `.tasks/README.md` when present. Keep affected product/page-map facts current using
 [the shared .tasks convention](../ui-delivery/references/project-context.md) as part of delivery.
 
-Read the repository's task routing, authoritative registry, selected card, and linked design.
+Read repository task routing, then obtain the selected card with this skill's read-only helper:
+
+```sh
+node <coding-owner-dir>/bin/get-task.mjs <ID> --root <authoritative-checkout>
+```
+
+It returns the complete target card and bounded direct-dependency excerpts, including available
+interface pointers and evidence. Follow linked design/code paths only as needed. Query a dependency
+by its ID for omitted fields or deeper context; summaries are not acceptance proof. Use `--registry`
+for a non-default ledger and `--help` for output options. The helper supports JSON or YAML cards
+starting with `- id:`; unsupported layouts need a compatible project reader or JSON export.
+Default to this projection rather than loading all of tasks.yaml or running a full report for a
+known ID. Use the repository's filtered task listing when selecting work. Resolve the authoritative
+checkout before reading; the helper reads exactly the root supplied, without switching branches.
+This helper only reads context; ownership and completion continue through the existing task tool.
+
 Use the existing schema and task tool; do not create a competing registry. Choose within the
 requested scope, favoring dependency-unblocking work when the user has delegated ordering.
 
 For the bundled Node CLI, run from the target repository:
 
 ```sh
-node ~/.agents/skills/task-integrator/bin/tasks.mjs report --md
 node ~/.agents/skills/task-integrator/bin/tasks.mjs claim <ID> \
   --registry <registry-path> --owner "<agent>#<unique-id>" \
   --branch <task-branch> --worktree <absolute-task-path>

@@ -18,6 +18,6 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node --test test/cli.test.mjs skills/ui-delivery/test/preview.test.mjs skills/task-integrator/bin/preview.test.mjs skills/task-integrator/bin/tasks.test.mjs && python3 -m unittest skills/coding-owner/scripts/test_worktree_kit.py"
+    "test": "node --test test/cli.test.mjs skills/ui-delivery/test/preview.test.mjs skills/task-integrator/bin/preview.test.mjs skills/task-integrator/bin/tasks.test.mjs skills/coding-owner/bin/get-task.test.mjs && python3 -m unittest skills/coding-owner/scripts/test_worktree_kit.py"
   }
 }

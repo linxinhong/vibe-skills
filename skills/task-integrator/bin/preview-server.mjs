@@ -15,8 +15,8 @@ export async function openLocal(target) {
 export function createPreviewServer(options,{opener=openLocal}={}) {
   const token=randomBytes(24).toString('hex');
   let cached,at=0;
-  const getState=()=>{
-    if(!cached||Date.now()-at>10000){
+  const getState=(force=false)=>{
+    if(force||!cached||Date.now()-at>10000){
       const next=loadState(options);
       const head=next.git.baseSha || (next.git.available?git(next.root,['rev-parse','HEAD']):null);
       if(head)next.recent=history(next.root,head,next.git.baseSha);
@@ -49,7 +49,7 @@ export function createPreviewServer(options,{opener=openLocal}={}) {
       if(req.method!=='GET')return send(405,{error:'不支持的操作'});
       if(req.headers.origin&&req.headers.origin!==origin)return send(403,{error:'不允许跨域访问'});
       if(req.headers['sec-fetch-site']==='cross-site')return send(403,{error:'不允许跨站访问'});
-      const state=getState();
+      const state=getState(url.pathname==='/api/state'&&url.searchParams.get('refresh')==='1');
       if(url.pathname==='/') {
         res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'"});
         return res.end(renderPage(state,{live:true,token}));

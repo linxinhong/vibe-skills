@@ -11,6 +11,33 @@ import { createPreviewServer, main, parseArgs } from './preview-server.mjs';
 
 function fixture(t){const root=mkdtempSync(join(tmpdir(),'task-preview-test-'));t.after(()=>rmSync(root,{recursive:true,force:true}));return root;}
 function g(root,...args){return execFileSync('git',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();}
+test('manual refresh bypasses the live snapshot cache and retains last good data on failure',async t=>{
+  const root=fixture(t),input=join(root,'input.json');
+  const write=status=>writeFileSync(input,JSON.stringify({project:'Refresh',tasks:[{id:'A',title:'Example',status}]}));
+  write('ready');
+  const server=createPreviewServer({root,data:'input.json'});
+  await new Promise(ok=>server.listen(0,'127.0.0.1',ok));t.after(()=>server.close());
+  const origin='http://127.0.0.1:'+server.address().port;
+  const get=async path=>await(await fetch(origin+path)).json();
+  assert.equal((await get('/api/state')).tasks[0].status,'ready');
+  write('done');
+  assert.equal((await get('/api/state')).tasks[0].status,'ready');
+  assert.equal((await get('/api/state?refresh=1')).tasks[0].status,'done');
+  writeFileSync(input,'invalid JSON');
+  assert.equal((await fetch(origin+'/api/state?refresh=1')).status,400);
+  assert.equal((await get('/api/state')).tasks[0].status,'done');
+  write('in_progress');
+  assert.equal((await get('/api/state?refresh=1')).tasks[0].status,'in_progress');
+  const html=renderPage(loadState({root,data:'input.json'}),{live:true});
+  assert.ok(html.includes("$('header-search').before(refreshButton)"));
+  assert.ok(html.includes("refreshButton.onclick=()=>refresh(true)"));
+  assert.ok(html.includes('refreshButton.disabled=true'));
+  assert.ok(html.includes('aria-hidden="true"><path d="M20 7v5h-5"'));
+  assert.ok(html.includes("refreshLabel.textContent='刷新中…'"));
+  assert.ok(!html.includes("refreshButton.textContent="));
+  assert.ok(html.includes("else refreshButton.onclick=()=>location.reload()"));
+  new Script(html.match(/<script>([\s\S]*?)<\/script>/)[1]);
+});
 test('arbitrary IDs, unknown statuses, missing dependencies and cycles stay explicit',()=>{
   const state=normalize({project:{name:'Example'},tasks:[{id:'事项 α',title:'A',status:'reviewing',dependencies:['B']},{id:'B',dependencies:['事项 α','missing']}]});
   assert.equal(state.tasks[0].status,'reviewing');assert.equal(state.tasks[0].kind,'unclassified');

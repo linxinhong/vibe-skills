@@ -202,13 +202,33 @@ function client(initial, live, token) {
   }
   document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{prefs.view=b.dataset.view;save();render();if(prefs.view==='graph')requestAnimationFrame(()=>$('content').querySelector('.graph-port')?.focus());});
   $('query').addEventListener('input',()=>{prefs.query=$('query').value;save();render();});
+  const refreshButton=document.createElement('button');
+  refreshButton.id='refresh';refreshButton.type='button';
+  refreshButton.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M20 12a8 8 0 1 0-2.3 5.7"/></svg><span>刷新</span>';
+  refreshButton.style.display='inline-flex';refreshButton.style.alignItems='center';refreshButton.style.gap='6px';
+  const refreshLabel=refreshButton.querySelector('span');
+  refreshButton.setAttribute('aria-label','刷新任务进度');
+  refreshButton.title=live?'重新读取任务与 Git 进度':'重新加载已生成的静态快照；更新任务数据需重新生成预览';
+  $('header-search').before(refreshButton);
   $('theme-toggle').onclick=()=>{prefs.theme=prefs.theme==='dark'?'light':'dark';save();render();};
   const navigateTask=offset=>{const i=state.tasks.findIndex(t=>t.id===selected),target=state.tasks[i+offset];if(target){selected=target.id;selectedWt='';detail();}};
   $('previous-task').onclick=()=>navigateTask(-1);$('next-task').onclick=()=>navigateTask(1);$('return-task').onclick=()=>{if(task(returnTask)){selected=returnTask;selectedWt='';detail();}};
   $('close').onclick=()=>$('detail').close();$('detail').addEventListener('close',()=>{generation++;returnTask=null;lastFocus?.focus();});
   render();
   matchMedia('(max-width:700px)').addEventListener('change',render);
-  if(live){let fingerprint=JSON.stringify([state.project,state.projectStatus,state.tasks,state.git,state.milestones,state.architecture]);async function tick(){try{const next=await api('/api/state');$('error').textContent='';const nextKey=JSON.stringify([next.project,next.projectStatus,next.tasks,next.git,next.milestones,next.architecture]);state=next;if(nextKey!==fingerprint){fingerprint=nextKey;render();if($('detail').open)detail();}}catch(e){$('error').textContent='刷新失败，保留 '+stamp(state.generatedAt)+' 的数据：'+e.message;}finally{setTimeout(tick,3000);}}setTimeout(tick,3000);}
+  if(live){
+    let fingerprint=JSON.stringify([state.project,state.projectStatus,state.tasks,state.git,state.milestones,state.architecture]),refreshing=false;
+    async function refresh(force=false){
+      if(refreshing)return;
+      refreshing=true;refreshButton.disabled=true;refreshLabel.textContent='刷新中…';refreshButton.setAttribute('aria-busy','true');
+      try{const next=await api(force?'/api/state?refresh=1':'/api/state');$('error').textContent='';const nextKey=JSON.stringify([next.project,next.projectStatus,next.tasks,next.git,next.milestones,next.architecture]);state=next;if(force||nextKey!==fingerprint){fingerprint=nextKey;render();if($('detail').open)detail();}}
+      catch(e){$('error').textContent='刷新失败，保留 '+stamp(state.generatedAt)+' 的数据：'+e.message;}
+      finally{refreshing=false;refreshButton.disabled=false;refreshLabel.textContent='刷新';refreshButton.removeAttribute('aria-busy');}
+    }
+    refreshButton.onclick=()=>refresh(true);
+    async function tick(){await refresh();setTimeout(tick,3000);}
+    setTimeout(tick,3000);
+  }else refreshButton.onclick=()=>location.reload();
 }
 
 export function renderPage(state,{live=false,token=''}={}) {
