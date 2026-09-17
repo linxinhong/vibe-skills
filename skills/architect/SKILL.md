@@ -5,7 +5,7 @@ description: >
   Use for design decisions and task decomposition; small implementation requests do not
   automatically require a planning phase or new documents.
 metadata:
-  version: "4.5"
+  version: "4.6"
   role: architect
 ---
 
@@ -151,6 +151,7 @@ tasks:
         expect: "A concrete observable result"
     dependencies: []
     risk_level: L1
+    recommended_model: "gpt-5.6 terra"
     investigation_hints: []
     escalation_conditions: []
     result:
@@ -183,6 +184,27 @@ Preserve an established repository schema rather than migrating it to this examp
 Risk labels describe review/verification needs: L1 local, L2 cross-module, L3 contract/data/runtime,
 L4 architecture/security/critical-system. They do not independently create approval gates;
 identify any actual required review in the card.
+
+## Model recommendation
+
+For each newly created or materially revised card, include the optional top-level
+`recommended_model` string. Use the user's/provider's recognizable model name
+(for example `gpt-5.6 sol`, `gpt-5.6 terra`, `gpt-6 astra`, `glm-5.3`, or
+`glm-5.3-flash`). These are extensible display values, not a fixed enum or API IDs.
+Keep old cards without this field valid; do not bulk rewrite historical cards.
+
+Choose from the user's available models based on scope, uncertainty, failure impact,
+and verification cost. As a dispatch heuristic (not a benchmark claim), prefer
+terra or flash for bounded routine work, sol or glm-5.3 for multi-file implementation,
+and reserve astra for exceptional architecture/security ambiguity or justified escalation.
+User preferences take precedence. Do not recommend astra for every card merely because
+the project is enterprise software. Explain exceptional choices briefly at handoff.
+
+This is advice, not a claim gate. Execution must check actual host availability and
+resolve the display name to a supported model before delegation; never invent model
+availability or silently pretend a fallback used the recommended model.
+Keep the actual claimant in the existing owner field. Never copy the recommendation
+into owner or infer the claimant's model from its name.
 
 ## Validate and hand off
 

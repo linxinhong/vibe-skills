@@ -11,6 +11,30 @@ import { createPreviewServer, main, parseArgs } from './preview-server.mjs';
 
 function fixture(t){const root=mkdtempSync(join(tmpdir(),'task-preview-test-'));t.after(()=>rmSync(root,{recursive:true,force:true}));return root;}
 function g(root,...args){return execFileSync('git',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();}
+test('recommendation stays advisory and assignment follows actual status and owner',t=>{
+  const root=fixture(t);mkdirSync(join(root,'.tasks'));
+  writeFileSync(join(root,'.tasks/tasks.yaml'),'tasks:\n  - id: A\n    status: ready\n    recommended_model: "gpt-6 astra"\n    result:\n      owner: "worker-sol"\n');
+  const state=loadState({root});
+  assert.equal(state.tasks[0].recommendedModel,'gpt-6 astra');
+  assert.equal(state.tasks[0].owner,'worker-sol');
+  const html=renderPage(state);
+  const assignment=new Script(html.match(/  const assignment=.*?;\n/)[0]+'assignment;').runInNewContext();
+  for(const status of ['ready','pending','blocked','done','failed','awaiting_integration','needs_arch_review','custom']){
+    assert.equal(assignment({...state.tasks[0],status}),'推荐：gpt-6 astra');
+  }
+  assert.equal(assignment({...state.tasks[0],status:'in_progress'}),'接管 Agent：worker-sol');
+  assert.equal(assignment({status:'in_progress'}),'接管 Agent：未记录');
+  assert.equal(assignment(normalize({tasks:[{id:'old'}]}).tasks[0]),'推荐：未指定');
+  for(const model of ['gpt-5.6 sol','gpt-5.6 terra','glm-5.3','glm-5.3-flash','future-model']){
+    assert.equal(normalize({tasks:[{id:'A',recommended_model:model}]}).tasks[0].recommendedModel,model);
+  }
+  const evil='</script><script>alert(1)</script>';
+  writeFileSync(join(root,'input.json'),JSON.stringify({tasks:[{id:'A',recommended_model:evil}]}));
+  const exported=renderPage(loadState({root,data:'input.json'}));
+  assert.ok(!exported.includes(evil));
+  new Script(exported.match(/<script>([\s\S]*?)<\/script>/)[1]);
+  assert.ok(html.includes('esc(assignment(t))'));
+});
 test('manual refresh bypasses the live snapshot cache and retains last good data on failure',async t=>{
   const root=fixture(t),input=join(root,'input.json');
   const write=status=>writeFileSync(input,JSON.stringify({project:'Refresh',tasks:[{id:'A',title:'Example',status}]}));

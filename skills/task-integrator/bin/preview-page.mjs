@@ -2,6 +2,7 @@ function client(initial, live, token) {
   const $=id=>document.getElementById(id);
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const name=t=>(t?.title||'名称待核实')+'（'+(t?.id||'?')+'）';
+  const assignment=t=>t.status==='in_progress'?'接管 Agent：'+(t.owner||'未记录'):'推荐：'+(t.recommendedModel||'未指定');
   const labels=Object.assign(Object.create(null),{ready:'可领取',in_progress:'进行中',awaiting_integration:'待集成',pending:'等待依赖',blocked:'受阻',needs_arch_review:'需裁决',failed:'失败',done:'已完成',unknown:'未映射'});
   const kinds=Object.assign(Object.create(null),{development:'开发',verification:'阶段验证',acceptance:'业务验收',unclassified:'未分类'});
   let state=initial, prefs={view:'board',query:'',owner:'',status:'',theme:'system',collapsed:['done']}, selected=null, returnTask=null, tab='requirements', lastFocus=null, selectedWt='', generation=0;
@@ -62,7 +63,7 @@ function client(initial, live, token) {
     }
     closeList();if(code)out.push('<pre><code>'+esc(codeLines.join('\n'))+'</code></pre>');return out.join('');
   }
-  function filtered(){return state.tasks.filter(t=>!prefs.query||(name(t)+' '+t.owner).toLowerCase().includes(prefs.query.toLowerCase()));}
+  function filtered(){return state.tasks.filter(t=>!prefs.query||(name(t)+' '+t.owner+' '+(t.recommendedModel||'')).toLowerCase().includes(prefs.query.toLowerCase()));}
   function bindTasks(el){el.querySelectorAll('[data-task]').forEach(b=>b.onclick=()=>open(b.dataset.task));}
   function render(){
     document.documentElement.dataset.theme=prefs.theme;
@@ -90,7 +91,7 @@ function client(initial, live, token) {
     const active=rows.filter(t=>t.status==='in_progress');
     const completed=rows.filter(t=>t.status==='done').sort((a,b)=>(Date.parse(b.completedAt)||0)-(Date.parse(a.completedAt)||0)).slice(0,20);
     const recent=(state.recent?.commits||[]).slice(0,10);
-    const taskRows=items=>items.map(t=>'<div class="overview-task">'+button(t)+'<small>'+esc(t.owner||'未分配')+(t.completedAt?' · '+esc(stamp(t.completedAt)):'')+'</small></div>').join('');
+    const taskRows=items=>items.map(t=>'<div class="overview-task">'+button(t)+'<small>'+esc(assignment(t))+(t.completedAt?' · '+esc(stamp(t.completedAt)):'')+'</small></div>').join('');
     $('content').innerHTML='<div class="overview"><div class="overview-column"><section><h2>交付概览</h2><div class="delivery-totals"><strong class="number">'+done+' <small>/ '+rows.length+'</small></strong><span>总提交数：<b>'+esc(state.git?.commitCount??0)+'</b></span></div><div class="progress-wrap"><progress aria-label="卡片完成率 '+percent+'%" max="'+Math.max(rows.length,1)+'" value="'+done+'"></progress><span>'+percent+'%</span></div><div class="metrics">'+Object.entries(labels).filter(([s])=>s!=='done').map(([s,l])=>'<div><b>'+rows.filter(t=>t.status===s).length+'</b><span>'+l+'</span></div>').join('')+'</div></section><section><h2>处置中 <small>'+active.length+' 项</small></h2><div class="overview-task-list">'+(active.length?taskRows(active):'<p class="empty-state">当前没有处置中的任务</p>')+'</div></section></div><div class="overview-column"><section><h2>最近完成</h2><div class="overview-task-list">'+(completed.length?taskRows(completed):'<p class="empty-state">暂无已完成任务</p>')+'</div></section></div><div class="overview-column"><section><h2>最近提交</h2><div class="commit-list">'+recent.map(c=>'<article class="commit-row '+commitTone(c)+'"><span class="commit-mark">'+esc(c.subject.split(/[(:]/,1)[0]||'git')+'</span><div><strong>'+esc(c.subject)+'</strong><small>'+esc(c.hash.slice(0,8)+' · '+stamp(c.date))+'</small></div></article>').join('')+'</div>'+(!recent.length?'<p class="empty-state">没有可用的 Git 提交记录</p>':'')+'</section></div></div>';
   }
   function board(rows){
@@ -103,7 +104,7 @@ function client(initial, live, token) {
       const items=rows.filter(t=>t.status===s);if(!items.length&&!preferred.includes(s))return '';
       if(mobile&&s!==prefs.mobileStatus)return '';
       const collapsed=!mobile&&prefs.collapsed.includes(s);
-      const cards=items.map(t=>{const detail=[t.kind&&t.kind!=='unclassified'?kinds[t.kind]||t.kind:'',blocked(t).length?'等待 '+blocked(t).length+' 项依赖':''].filter(Boolean).join(' · ');return '<button class="card" data-task="'+esc(t.id)+'"><strong>'+esc(name(t))+'</strong><p>'+esc(t.owner||'未分配')+' <span>'+esc(t.risk)+'</span></p>'+(detail?'<small>'+esc(detail)+'</small>':'')+(t.comparison?.ahead?'<small>有 '+t.comparison.ahead+' 个未合并提交</small>':'')+'</button>';}).join('');
+      const cards=items.map(t=>{const detail=[t.kind&&t.kind!=='unclassified'?kinds[t.kind]||t.kind:'',blocked(t).length?'等待 '+blocked(t).length+' 项依赖':''].filter(Boolean).join(' · ');return '<button class="card" data-task="'+esc(t.id)+'"><strong>'+esc(name(t))+'</strong><p>'+esc(assignment(t))+' <span>'+esc(t.risk)+'</span></p>'+(detail?'<small>'+esc(detail)+'</small>':'')+(t.comparison?.ahead?'<small>有 '+t.comparison.ahead+' 个未合并提交</small>':'')+'</button>';}).join('');
       return '<section class="lane '+(collapsed?'collapsed':'')+'" data-status="'+esc(s)+'"><button class="lane-head" data-collapse="'+esc(s)+'" aria-expanded="'+!collapsed+'">'+esc(labels[s]||'未映射：'+s)+' <span>'+items.length+'</span> '+(collapsed?'＋':'−')+'</button><div class="cards" data-scroll="'+esc(s)+'" '+(collapsed?'hidden':'')+'>'+(cards||'<p class="lane-empty">当前没有任务</p>')+'</div></section>';
     }).join('')+'</div>'+(rows.length?'':'<p class="empty">没有匹配任务</p>');
     document.querySelectorAll('[data-collapse]').forEach(b=>b.onclick=()=>{prefs.collapsed=prefs.collapsed.includes(b.dataset.collapse)?prefs.collapsed.filter(s=>s!==b.dataset.collapse):[...prefs.collapsed,b.dataset.collapse];save();render();});

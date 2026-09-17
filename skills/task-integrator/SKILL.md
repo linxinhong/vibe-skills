@@ -5,7 +5,7 @@ description: >
   Reconcile status or integrate completed work when requested or already authorized.
   A progress question is read-only; this skill does not implement unrelated features.
 metadata:
-  version: "4.3"
+  version: "4.4"
   role: task-integrator
 ---
 
@@ -151,6 +151,11 @@ For protected branches, follow the required merge path and wait for observable m
 before recording done.
 
 ## Report
+
+Preserve optional `recommended_model` when reconciling cards. In visual task cards,
+`in_progress` shows the recorded claimant Agent; every other status shows the
+recommended model. Missing recommendation or owner stays explicitly unspecified;
+do not infer actual execution models or rewrite ownership from recommendations.
 
 For visual project progress, read [preview inputs and usage](references/preview.md) and run
 `node <skill-dir>/bin/preview.mjs --root <project> --open`. Use `--live --open` for worktree

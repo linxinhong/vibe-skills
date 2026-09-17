@@ -16,6 +16,7 @@ export function normalize(doc, fallback = 'Project') {
     const r = t.result || {};
     return { id: t.id, title: text(t.title || t.name || '名称待核实'), status: text(t.status || 'unknown'),
       owner: text(t.owner ?? r.owner), dependencies: list(t.dependencies).map(text), goal: text(t.goal),
+      recommendedModel: text(t.recommended_model ?? t.recommendedModel),
       risk: text(t.risk_level ?? t.risk), kind: text(t.kind || 'unclassified'), group: text(t.group),
       acceptance: list(t.acceptance), evidence: list(t.evidence ?? r.evidence), scope: t.scope || {},
       branch: text(t.branch ?? r.branch), worktree: text(t.worktree ?? r.worktree),

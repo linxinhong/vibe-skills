@@ -1,5 +1,15 @@
 # 通用项目进度预览
 
+任务支持可选字段 `recommended_model: "gpt-6 astra"`（YAML/JSON 通用；JSON
+也接受 `recommendedModel`）。模型名称是可扩展显示文本，不限制厂商或别名。
+Architect 为新卡按任务难度推荐，不自动给历史卡补值。
+
+看板与概览中的任务摘要：`in_progress` 显示 `接管 Agent：<owner>`；其他状态
+显示 `推荐：<recommended_model>`。实际接管者取现有 `owner` / `result.owner`，
+不从推荐字段推断。旧卡缺推荐显示 `推荐：未指定`，进行中缺 Owner 显示
+`接管 Agent：未记录`。详情继续保留历史负责人；搜索可匹配推荐模型。
+推荐不等于运行时模型 ID 或可用性保证，不影响权限、依赖或领取条件。
+
 Node 18+，零外部运行依赖。`preview.mjs` 及同目录 supporting modules 一起使用。
 
 ```sh

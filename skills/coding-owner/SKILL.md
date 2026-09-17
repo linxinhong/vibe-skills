@@ -5,7 +5,7 @@ description: >
   verification, and evidence-backed completion. Use for task-card execution or an authorized
   queue; ordinary edits without a task registry do not require this workflow.
 metadata:
-  version: "4.8"
+  version: "4.9"
   role: coding-owner
 ---
 
@@ -35,6 +35,10 @@ Default to this projection rather than loading all of tasks.yaml or running a fu
 known ID. Use the repository's filtered task listing when selecting work. Resolve the authoritative
 checkout before reading; the helper reads exactly the root supplied, without switching branches.
 This helper only reads context; ownership and completion continue through the existing task tool.
+
+Before further discovery, read `.tasks/memory/index.md` when present, then only the selected
+task's and relevant direct dependencies' memory files. Follow the
+[task memory workflow](references/task-memory.md) for pickup, handoff, and completion.
 
 Use the existing schema and task tool; do not create a competing registry. Choose within the
 requested scope, favoring dependency-unblocking work when the user has delegated ordering.
@@ -239,7 +243,10 @@ When integration is in scope, perform it without another routine approval round:
 2. Integrate against current main using repository policy. Reverify when synchronization changes
    the tested result; retain valid evidence when the tested tree is unchanged.
 3. Verify required acceptance and relevant regressions on the integrated result.
-4. Persist completion and unlock dependencies with the task tool.
+4. Save and integrate `.tasks/memory/<ID>.md` following the task memory workflow; include its
+   path in completion evidence. Confirm its source revision, entry points, reusable lessons,
+   verification limits, and unresolved work are accurate before marking the card done.
+5. Persist completion and unlock dependencies with the task tool.
 
 ```sh
 node ~/.agents/skills/task-integrator/bin/tasks.mjs preflight <ID> --registry <registry-path>
