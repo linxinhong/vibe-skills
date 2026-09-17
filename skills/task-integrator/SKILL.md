@@ -5,7 +5,7 @@ description: >
   Reconcile status or integrate completed work when requested or already authorized.
   A progress question is read-only; this skill does not implement unrelated features.
 metadata:
-  version: "4.2"
+  version: "4.3"
   role: task-integrator
 ---
 
@@ -43,6 +43,30 @@ decision drift. Audit mode reports discrepancies without rewriting project histo
 Read repository task routing, the authoritative registry, and relevant card/design documents.
 Read status from the integration checkout; do not treat a private worktree's ledger as authoritative.
 Keep separate registries/work packages distinct in reports.
+
+### Workspace retrieval: ZG first for relationships
+
+Before discovery, follow repository routing and classify the question:
+
+- Exact occurrence (known symbol/path/error): use `zvec_grep_rg` when exposed, otherwise
+  scoped `rg`; read located ranges with `sed` or the file reader.
+- Unknown location, concepts, architecture, callers, or cross-file flow: first discover and
+  call the host's `zvec_grep_search` tool with the question and known anchors. A known
+  symbol does not make a relationship question an exact lookup. Use exact search for follow-up.
+- Existing sufficient evidence or a supplied file/line needs no ceremonial search.
+
+Pass a daemon-visible absolute `root` for the checkout being investigated on every ZG call.
+Use the tool's actual schema; read `freshness`/`background_refresh` from its result without
+a status preflight. Reuse sufficient snippets; open files only for missing context.
+If the tool is absent, use an already configured ZG CLI only through its documented interface.
+If neither entry is available, the call fails, or results are irrelevant/insufficient, state the
+specific reason and continue with bounded exact lookup and focused reads. Do not repeatedly
+retry unchanged failures. Creating, rebuilding, dropping, or widening persistent indexes
+requires explicit user authorization.
+A narrow/stale index cannot prove repository-wide absence.
+
+In the existing evidence/handoff, add one compact retrieval line: ZG query + useful paths,
+or fallback reason + searched scope; exact-only work can say so. No new report file is needed.
 
 Run the bundled CLI from the target repository (Node 18+, no external dependencies):
 

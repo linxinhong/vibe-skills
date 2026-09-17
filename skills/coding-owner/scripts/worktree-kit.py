@@ -125,7 +125,7 @@ def prepare(root, private, source):
     data = {'root': str(root), 'cache_source': str(source), 'env': env,
             'tool_paths': tool_paths, 'cache_decisions': cache_decisions,
             'pnpm_store': store, 'tools': tools,
-            'retrieval': 'ZG optional; use rg/focused reads when unavailable',
+            'retrieval': 'Follow SKILL.md retrieval routing: ZG first for concepts/relationships; exact lookup uses rg; record fallback reasons',
             'isolation': 'install/build directories remain worktree-local; allocate app ports explicitly'}
     save(private / 'environment.json', data)
     return data

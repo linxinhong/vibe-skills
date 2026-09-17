@@ -1,7 +1,7 @@
 # Worktree acceleration
 
 Use after normal ownership/claim and worktree creation; this helper does not replace task tooling.
-Requires Python 3.9+ and Git; Go/pnpm are optional, ZG is never required. Preparation probes installed
+Requires Python 3.9+ and Git; Go/pnpm are optional. Preparation itself needs no ZG. Preparation probes installed
 tools; fix a broken installed tool rather than silently claiming its cache works. Toolchain selection
 must already match the repository. Preparation persists the selected tool directories in private
 worktree configuration so later helper calls use the same PATH; it changes no shell profile,
@@ -15,7 +15,7 @@ the native check's failure code, and performs no installs. For this repository, 
 python3 ~/.agents/skills/coding-owner/scripts/worktree-kit.py --root /absolute/worktree doctor --cwd web --require pnpm --require python -- node ../scripts/web-test-runner.mjs --check
 ```
 
-Choose requirements from the scripts actually being run; ZG is optional. `python3` being installed
+Choose requirements from the scripts actually being run; retrieval follows SKILL.md, not toolchain checks. `python3` being installed
 does not satisfy a script that invokes `python`. Select the repository-approved interpreter/toolchain
 and run prepare plus doctor again after intentionally changing PATH. `run --require python` can guard
 a nested script dependency before the command starts. A launcher such as `sh -c` hides its child
@@ -72,7 +72,8 @@ python3 ~/.agents/skills/coding-owner/scripts/worktree-kit.py --root /absolute/w
 The brief contains `task` (name and ID), `entry_paths`, `decisions`, `remaining`, and `next_command`;
 include evidence paths as needed. The helper caches this brief with branch/revision, not another task
 registry. Resume flags changes including dirty file contents; check current ownership before work.
-Without ZG, use the entry paths and focused rg, expanding only for unresolved questions.
+For retrieval and any ZG fallback, follow SKILL.md's workspace retrieval rule and preserve the
+query/useful paths or concrete fallback reason in this existing handoff.
 
 For timing comparisons, hold revision, command, toolchain, and acceptance constant; run multiple
 trials and separate install/build/retrieval/test phases. Use newly allocated disposable caches for

@@ -5,7 +5,7 @@ description: >
   verification, and evidence-backed completion. Use for task-card execution or an authorized
   queue; ordinary edits without a task registry do not require this workflow.
 metadata:
-  version: "4.7"
+  version: "4.8"
   role: coding-owner
 ---
 
@@ -101,12 +101,32 @@ the next expensive command. Select repository-compatible tool versions before pr
 ## Bounded preflight
 
 Start from the card's entry map and existing evidence rather than repeating a whole-repository
-scout. Follow repository retrieval routing: exact anchors use the available exact-search tool or
-rg; unknown locations or cross-file concepts use ZG when available, with an absolute workspace
-root. Read freshness from results and use sufficient snippets without reopening whole files.
-Fallback to focused lookup when retrieval is unavailable or irrelevant. Do not silently create,
-rebuild, or widen persistent indexes; a narrow index cannot establish repository-wide absence.
-Use `rg` for exact lookup when available; use native grep only if no exact-search tool or rg exists.
+scout.
+
+### Workspace retrieval: ZG first for relationships
+
+Before discovery, follow repository routing and classify the question:
+
+- Exact occurrence (known symbol/path/error): use `zvec_grep_rg` when exposed, otherwise
+  scoped `rg`; read located ranges with `sed` or the file reader.
+- Unknown location, concepts, architecture, callers, or cross-file flow: first discover and
+  call the host's `zvec_grep_search` tool with the question and known anchors. A known
+  symbol does not make a relationship question an exact lookup. Use exact search for follow-up.
+- Existing sufficient evidence or a supplied file/line needs no ceremonial search.
+
+Pass a daemon-visible absolute `root` for the checkout being investigated on every ZG call.
+Use the tool's actual schema; read `freshness`/`background_refresh` from its result without
+a status preflight. Reuse sufficient snippets; open files only for missing context.
+If the tool is absent, use an already configured ZG CLI only through its documented interface.
+If neither entry is available, the call fails, or results are irrelevant/insufficient, state the
+specific reason and continue with bounded exact lookup and focused reads. Do not repeatedly
+retry unchanged failures. Creating, rebuilding, dropping, or widening persistent indexes
+requires explicit user authorization.
+A narrow/stale index cannot prove repository-wide absence.
+
+In the existing evidence/handoff, add one compact retrieval line: ZG query + useful paths,
+or fallback reason + searched scope; exact-only work can say so. No new report file is needed.
+
 Batch independent searches/reads in one tool round; keep adaptive follow-ups sequential. Reuse
 sufficient snippets. When a repeated hypothesis yields no new evidence, run a focused reproducer
 or inspect the exact failing assertion and its inputs before another speculative edit.
